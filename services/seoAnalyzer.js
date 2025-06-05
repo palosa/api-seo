@@ -1,5 +1,5 @@
 const puppeteer = require("puppeteer");
-const { fetch } = require("undici");
+
 const { URL } = require("url");
 const GOOGLE_API_KEY = process.env.PAGESPEED_API_KEY || ""; // define tu clave en .env
 
