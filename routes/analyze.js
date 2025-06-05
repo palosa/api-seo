@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const seoAnalyzer = require("../services/seoAnalyzer");
-const fetch = require("undici").fetch;
 
 const GOOGLE_API_KEY = process.env.PAGESPEED_API_KEY || "";
 
