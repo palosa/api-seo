@@ -7,7 +7,12 @@
     "start": "node index.js",
     "dev": "nodemon index.js"
   },
-  "keywords": ["seo", "auditoría", "puppeteer", "api"],
+  "keywords": [
+    "seo",
+    "auditoría",
+    "puppeteer",
+    "api"
+  ],
   "author": "Tu Nombre",
   "license": "MIT",
   "repository": {
@@ -17,6 +22,7 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^5.1.0",
+    "node-fetch": "^3.3.2",
     "puppeteer": "^24.8.1"
   },
   "engines": {
