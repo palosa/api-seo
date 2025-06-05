@@ -1,5 +1,4 @@
 const puppeteer = require("puppeteer");
-const fetch = require("node-fetch");
 
 async function seoAnalyzer(url) {
   let browser;
@@ -158,7 +157,7 @@ async function seoAnalyzer(url) {
       await Promise.allSettled(
         uniqueLinks.map(async (href) => {
           try {
-            const res = await fetch(href, { method: 'HEAD', timeout: 5000 });
+            const res = await fetch(href, { method: 'HEAD', signal: AbortSignal.timeout(5000) });
             const entry = { url: href, status: res.status };
             if (!res.ok) broken.push(entry);
             if (new URL(href).hostname === new URL(url).hostname) {
