@@ -1,17 +1,25 @@
 {
   "name": "seo-api",
   "version": "1.0.0",
-  "description": "",
+  "description": "Una API de auditoría SEO que analiza páginas web usando Puppeteer.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["seo", "auditoría", "puppeteer", "api"],
+  "author": "Tu Nombre",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/palosa/api-seo.git"
+  },
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "puppeteer": "^24.8.1"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
