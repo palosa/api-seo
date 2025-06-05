@@ -1,6 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const seoAnalyzer = require("../services/seoAnalyzer");
+const fetch = require("undici").fetch;
+
+const GOOGLE_API_KEY = process.env.PAGESPEED_API_KEY || "";
 
 router.get("/", async (req, res) => {
   const { url } = req.query;
@@ -10,8 +13,29 @@ router.get("/", async (req, res) => {
   }
 
   try {
-    const data = await seoAnalyzer(url);
-    res.json({ ok: true, data });
+    // Ejecutar análisis SEO local
+    const seoData = await seoAnalyzer(url);
+
+    // Llamar API Google PageSpeed Insights
+    let pageSpeedData = null;
+    if (GOOGLE_API_KEY) {
+      const apiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&key=${GOOGLE_API_KEY}`;
+
+      const response = await fetch(apiUrl);
+      if (response.ok) {
+        const json = await response.json();
+        pageSpeedData = json.lighthouseResult.categories;
+      }
+    }
+
+    // Combinar resultados y enviar
+    res.json({
+      ok: true,
+      data: {
+        seoReport: seoData,
+        pageSpeed: pageSpeedData,
+      },
+    });
   } catch (err) {
     res.status(500).json({
       ok: false,

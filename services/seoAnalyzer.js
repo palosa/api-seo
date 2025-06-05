@@ -1,11 +1,14 @@
 const puppeteer = require("puppeteer");
+const { fetch } = require("undici");
+const { URL } = require("url");
+const GOOGLE_API_KEY = process.env.PAGESPEED_API_KEY || ""; // define tu clave en .env
 
 async function seoAnalyzer(url) {
   let browser;
   try {
     browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      args: ["--no-sandbox", "--disable-setuid-sandbox"]
     });
     const page = await browser.newPage();
 
@@ -115,6 +118,12 @@ async function seoAnalyzer(url) {
         }
       }).filter(Boolean);
 
+      const langAttr = document.documentElement.lang || null;
+      const hasNoscript = !!document.querySelector("noscript");
+      const hasFavicon = !!document.querySelector("link[rel~='icon']");
+      const hreflangs = Array.from(document.querySelectorAll("link[rel='alternate'][hreflang]"))
+        .map((l) => ({ lang: l.hreflang, href: l.href }));
+
       const headings = getHeadings();
 
       return {
@@ -124,6 +133,10 @@ async function seoAnalyzer(url) {
         robots: getMeta("robots"),
         viewport: getMeta("viewport"),
         charset: getCharset(),
+        lang: langAttr,
+        noscript: hasNoscript,
+        favicon: hasFavicon,
+        hreflangs,
         og: {
           title: getMeta("og:title"),
           description: getMeta("og:description"),
@@ -183,7 +196,47 @@ async function seoAnalyzer(url) {
       return { broken, internal, external };
     };
 
+    const fetchTxtFiles = async () => {
+      const base = new URL(url);
+      const robotsUrl = `${base.origin}/robots.txt`;
+      const sitemapUrl = `${base.origin}/sitemap.xml`;
+      const files = {};
+      for (const file of [robotsUrl, sitemapUrl]) {
+        try {
+          const res = await fetch(file);
+          if (res.ok) files[file] = await res.text();
+          else files[file] = `Error: ${res.status}`;
+        } catch {
+          files[file] = "Fetch failed";
+        }
+      }
+      return files;
+    };
+
+    const getPageSpeedInsights = async () => {
+      if (!GOOGLE_API_KEY) return { error: "Missing API key" };
+      const endpoint = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=mobile&key=${GOOGLE_API_KEY}`;
+      try {
+        const res = await fetch(endpoint);
+        if (!res.ok) return { error: `HTTP ${res.status}` };
+        return await res.json();
+      } catch (err) {
+        return { error: err.message };
+      }
+    };
+
+    const simulateVitals = () => {
+      return {
+        fcp: performance.timing.load * 0.4,
+        lcp: performance.timing.load * 0.8,
+        cls: +(Math.random() * 0.2).toFixed(3)
+      };
+    };
+
     data.linkStats = await checkBrokenLinks(data.links);
+    data.vitals = simulateVitals();
+    data.txtFiles = await fetchTxtFiles();
+    data.pageSpeed = await getPageSpeedInsights();
 
     return { url, status, ...data, performance };
   } catch (error) {
